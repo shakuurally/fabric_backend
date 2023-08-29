@@ -79,8 +79,11 @@ const fetchAndStoreMovies = async (routeName) => {
         await existingMovie.save();
       }
     }
+    const populatedData = await MovieModel.populate(fetchedData, {
+      path: "posterID",
+    });
 
-    return fetchedData;
+    return populatedData;
   } catch (error) {
     console.error(error);
     throw error;
