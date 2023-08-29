@@ -8,6 +8,11 @@ const fetchAndStoreMovies = async (routeName) => {
 
     // If data exists, return the stored data without making an API request
     if (existingMovies.length > 0) {
+      const populatedMovies = await MovieModel.populate(existingMovies, {
+        path: "posterID",
+      });
+
+      return populatedMovies;
       return existingMovies;
     }
 
