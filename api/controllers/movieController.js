@@ -41,6 +41,7 @@ const fetchAndStoreMovies = async (routeName) => {
           title: movie.Title,
           year: movie.Year,
           routeName: routeName, // Store the route name
+          Type: movie.Type,
         });
         await newMovie.save();
         fetchedData.push(newMovie);
@@ -53,7 +54,21 @@ const fetchAndStoreMovies = async (routeName) => {
     throw error;
   }
 };
+const fetchAllMovies = async (req, res) => {
+  try {
+    const allMovies = await MovieModel.find();
+    console.log("Fetched all movies:", allMovies); // Add this line for debugging
+    res.json({
+      message: "All movies fetched successfully",
+      data: allMovies,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "An error occurred" });
+  }
+};
 
 module.exports = {
   fetchAndStoreMovies,
+  fetchAllMovies,
 };
