@@ -1,21 +1,9 @@
 const axios = require("axios");
 const MovieModel = require("../models/Movie");
 const PosterModel = require("../models/Poster");
+
 const fetchAndStoreMovies = async (routeName) => {
   try {
-    // Check if data for the specified routeName already exists in the database
-    const existingMovies = await MovieModel.find({ routeName });
-
-    // If data exists, return the stored data without making an API request
-    if (existingMovies.length > 0) {
-      const populatedMovies = await MovieModel.populate(existingMovies, {
-        path: "posterID",
-      });
-
-      return populatedMovies;
-      return existingMovies;
-    }
-
     // Define the API URL based on the selected route name
     let apiUrl = "";
     if (routeName === "Matrix") {
@@ -25,17 +13,16 @@ const fetchAndStoreMovies = async (routeName) => {
     } else if (routeName === "Matrix Revolutions") {
       apiUrl = "http://www.omdbapi.com/?s=Matrix%20Revolutions&apikey=720c3666";
     }
+
     // Fetch data for the selected route
     const response = await axios.get(apiUrl);
     const responseData = response.data;
     const movies = responseData.Search;
-    const fetchedData = [];
 
     for (const movie of movies) {
-      // Check if the movie already exists
+      // Check if the movie already exists in the database
       const existingMovie = await MovieModel.findOne({
-        title: movie.Title,
-        routeName: routeName,
+        imdbID: movie.imdbID,
       });
 
       if (!existingMovie) {
@@ -65,7 +52,6 @@ const fetchAndStoreMovies = async (routeName) => {
 
         // Save the movie
         await newMovie.save();
-        fetchedData.push(newMovie);
       } else if (!existingMovie.posterID && movie.Poster) {
         // If the movie has no poster but the fetched data has a poster URL
         // Create a new Poster document and link it to the existing movie
@@ -84,20 +70,21 @@ const fetchAndStoreMovies = async (routeName) => {
         await existingMovie.save();
       }
     }
-    const populatedData = await MovieModel.populate(fetchedData, {
-      path: "posterID",
-    });
 
-    return populatedData;
+    // After storing the movies, you can fetch and return all movies with populated posterID
+    const allMovies = await MovieModel.find().populate("posterID");
+
+    return allMovies;
   } catch (error) {
     console.error(error);
     throw error;
   }
 };
+
 const fetchAllMovies = async (req, res) => {
   try {
-    const allMovies = await MovieModel.find();
-    console.log("Fetched all movies:", allMovies); // Add this line for debugging
+    const allMovies = await MovieModel.find().populate("posterID");
+
     res.json({
       message: "All movies fetched successfully",
       data: allMovies,
