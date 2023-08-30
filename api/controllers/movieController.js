@@ -95,7 +95,7 @@ const fetchAndStoreMovies = async (routeName) => {
 };
 const fetchAllMovies = async (req, res) => {
   try {
-    const allMovies = await MovieModel.find();
+    const allMovies = await MovieModel.find().populate("posterID");
     console.log("Fetched all movies:", allMovies); // Add this line for debugging
     res.json({
       message: "All movies fetched successfully",
